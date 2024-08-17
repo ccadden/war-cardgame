@@ -16,11 +16,13 @@ func main() {
 	p1 := newPlayer()
 	p2 := newPlayer()
 
-	for (!p1.hasLost() && !p2.hasLost()) && roundCounter < 10000 {
-		fmt.Printf("P1 total cards: %v\n", p1.totalCards())
-		fmt.Printf("P1 hasLost: %v\n", p1.hasLost())
-		fmt.Printf("P2 total cards: %v\n", p2.totalCards())
-		fmt.Printf("P2 hasLost: %v\n\n", p2.hasLost())
+	ok := dealDemCards(p1, p2)
+
+	if !ok {
+		panic("problem initializing game")
+	}
+
+	for gameCanContinue(p1, p2) && roundCounter < 10000 {
 		if p1.deck.Empty() {
 			p1.reshuffle()
 		}
@@ -53,12 +55,48 @@ func main() {
 		roundCounter++
 	}
 
+	fmt.Printf("P1 total cards: %v\n", p1.totalCards())
+	fmt.Printf("P1 hasLost: %v\n", p1.hasLost())
+	fmt.Printf("P2 total cards: %v\n", p2.totalCards())
+	fmt.Printf("P2 hasLost: %v\n\n", p2.hasLost())
 	fmt.Printf("Took %v rounds\n", roundCounter)
+}
+
+func gameCanContinue(p1, p2 *Player) bool {
+	if p1.totalCards() == 0 {
+		return false
+	}
+
+	if p2.totalCards() == 0 {
+		return false
+	}
+
+	return true
+}
+
+func dealDemCards(p1, p2 *Player) bool {
+	dealDeck := deck.NewDeck()
+
+	for i := range dealDeck.CardsRemaining() {
+		cardToDeal, ok := dealDeck.Deal()
+
+		if !ok {
+			return false
+		}
+
+		if i%2 == 0 {
+			p1.deck.AddCard(cardToDeal)
+		} else {
+			p2.deck.AddCard(cardToDeal)
+		}
+
+	}
+	return true
 }
 
 func newPlayer() *Player {
 	p := Player{}
-	p.deck = deck.NewDeck()
+	p.deck = newEmptyDeck()
 	p.discards = newEmptyDeck()
 
 	return &p
