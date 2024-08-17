@@ -5,12 +5,25 @@ import (
 	"github.com/ccadden/beat-the-box/deck"
 )
 
+const MAX_HANDS int = 10000
+const GAMES_TO_SIM int = 10000
+
 type Player struct {
 	deck     *deck.Deck
 	discards *deck.Deck
 }
 
 func main() {
+	sum := 0
+
+	for range GAMES_TO_SIM {
+		sum += doWar()
+	}
+
+	fmt.Printf("Over %v games, a game of war took on average %v rounds\n", GAMES_TO_SIM, sum/GAMES_TO_SIM)
+}
+
+func doWar() int {
 	roundCounter := 0
 
 	p1 := newPlayer()
@@ -55,11 +68,7 @@ func main() {
 		roundCounter++
 	}
 
-	fmt.Printf("P1 total cards: %v\n", p1.totalCards())
-	fmt.Printf("P1 hasLost: %v\n", p1.hasLost())
-	fmt.Printf("P2 total cards: %v\n", p2.totalCards())
-	fmt.Printf("P2 hasLost: %v\n\n", p2.hasLost())
-	fmt.Printf("Took %v rounds\n", roundCounter)
+	return roundCounter
 }
 
 func gameCanContinue(p1, p2 *Player) bool {
