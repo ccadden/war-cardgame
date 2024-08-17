@@ -16,7 +16,11 @@ func main() {
 	p1 := newPlayer()
 	p2 := newPlayer()
 
-	for (!p1.hasLost() || !p2.hasLost()) && roundCounter < 10000 {
+	for (!p1.hasLost() && !p2.hasLost()) && roundCounter < 10000 {
+		fmt.Printf("P1 total cards: %v\n", p1.totalCards())
+		fmt.Printf("P1 hasLost: %v\n", p1.hasLost())
+		fmt.Printf("P2 total cards: %v\n", p2.totalCards())
+		fmt.Printf("P2 hasLost: %v\n\n", p2.hasLost())
 		if p1.deck.Empty() {
 			p1.reshuffle()
 		}
@@ -28,13 +32,13 @@ func main() {
 		c1, ok := p1.dealCard()
 
 		if !ok {
-			panic("Couldn't deal card")
+			panic("Couldn't deal card for p1")
 		}
 
 		c2, ok := p2.dealCard()
 
 		if !ok {
-			panic("Couldn't deal card")
+			panic("Couldn't deal card for p2")
 		}
 
 		switch {
@@ -55,9 +59,13 @@ func main() {
 func newPlayer() *Player {
 	p := Player{}
 	p.deck = deck.NewDeck()
-	p.discards = deck.NewDeck()
+	p.discards = newEmptyDeck()
 
 	return &p
+}
+
+func newEmptyDeck() *deck.Deck {
+	return &deck.Deck{}
 }
 
 func (p *Player) hasLost() bool {
@@ -65,8 +73,17 @@ func (p *Player) hasLost() bool {
 }
 
 func (p *Player) reshuffle() {
-	p.deck = p.discards
-	p.discards = deck.NewDeck()
+	for !p.discards.Empty() {
+		card, ok := p.discards.Deal()
+
+		if !ok {
+			panic("couldn't reshuffle")
+		}
+
+		p.deck.AddCard(card)
+	}
+
+	p.deck.Shuffle()
 }
 
 func (p *Player) totalCards() int {
@@ -145,13 +162,13 @@ func declareWar(p1, p2 *Player) bool {
 
 	switch {
 	case c1 > c2:
-		p1.deck.AddCards([]int{c1, c2})
-		p1.deck.AddCards(wageredCards1)
-		p1.deck.AddCards(wageredCards2)
+		p1.discards.AddCards([]int{c1, c2})
+		p1.discards.AddCards(wageredCards1)
+		p1.discards.AddCards(wageredCards2)
 	case c2 > c1:
-		p2.deck.AddCards([]int{c1, c2})
-		p2.deck.AddCards(wageredCards1)
-		p2.deck.AddCards(wageredCards2)
+		p2.discards.AddCards([]int{c1, c2})
+		p2.discards.AddCards(wageredCards1)
+		p2.discards.AddCards(wageredCards2)
 	default:
 		declareWar(p1, p2)
 	}
